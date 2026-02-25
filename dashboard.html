@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Order Entry - ERP System</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .hamburger-btn {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px;
+      transition: all 0.3s ease;
+    }
+    .hamburger-btn span {
+      width: 25px;
+      height: 3px;
+      background: #007BFF;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    .hamburger-btn:hover {
+      opacity: 0.7;
+    }
+    .sidebar.hidden {
+      display: none;
+    }
+    @media (max-width: 1024px) {
+      .container {
+        grid-template-columns: 0 1fr;
+      }
+      .sidebar {
+        position: fixed;
+        left: -250px;
+        top: 100px;
+        width: 250px;
+        background: #fff;
+        padding: 20px 0;
+        border-radius: 0;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        z-index: 1000;
+        transition: left 0.3s ease;
+      }
+      .sidebar:not(.hidden) {
+        left: 0;
+      }
+    }
+    .header h1 {
+      color: #333;
+      font-size: 24px;
+      margin: 0;
+    }
+    .logout-btn {
+      padding: 10px 20px;
+      background: #dc3545;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .logout-btn:hover {
+      background: #c82333;
+    }
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 30px;
+      transition: all 0.3s ease;
+    }
+    .container.sidebar-hidden {
+      grid-template-columns: 1fr;
+    }
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all 0.3s ease;
+      visibility: visible;
+      width: 200px;
+    }
+    .sidebar.hidden {
+      display: none;
+      visibility: hidden;
+      width: 0;
+    }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 15px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      color: #666;
+      transition: all 0.3s ease;
+    }
+    .menu-item:hover {
+      background: #f0f0f0;
+      border-color: #007BFF;
+    }
+    .menu-item.expandable {
+      color: #007BFF;
+    }
+    .menu-toggle {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      transition: transform 0.3s ease;
+    }
+    .menu-item.expanded .menu-toggle {
+      transform: rotate(90deg);
+    }
+    .submenu {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      margin-left: 20px;
+      margin-top: 5px;
+    }
+    .submenu.active {
+      display: flex;
+    }
+    .submenu-item {
+      padding: 10px 15px;
+      background: #f9f9f9;
+      border-left: 3px solid #ffc107;
+      color: #666;
+      cursor: pointer;
+      font-size: 13px;
+      border-radius: 3px;
+      transition: all 0.3s ease;
+    }
+    .submenu-item:hover {
+      background: #ffedcc;
+      color: #ff9800;
+      border-left-color: #ff9800;
+    }
+    .submenu-item.active {
+      background: #e8f4f8;
+      color: #007BFF;
+      border-left-color: #007BFF;
+      font-weight: bold;
+    }
+    .nav-btn {
+      padding: 15px;
+      background: #fff;
+      color: #007BFF;
+      border: 2px solid #007BFF;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .nav-btn:hover {
+      background: #e7f3ff;
+    }
+    .nav-btn.active {
+      background: #007BFF;
+      color: #fff;
+    }
+    .content-area {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .content-section {
+      display: none;
+    }
+    .content-section.active {
+      display: block;
+    }
+    .form-section {
+      margin-bottom: 30px;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .form-group label {
+      font-weight: bold;
+      color: #333;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+    .form-group label .required {
+      color: #dc3545;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: Arial, sans-serif;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #007BFF;
+      box-shadow: 0 0 5px rgba(0,123,255,0.3);
+    }
+    .form-group input[type="file"] {
+      padding: 5px;
+    }
+    .table-section {
+      margin-top: 30px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      font-size: 13px;
+    }
+    table thead {
+      background: #f8f9fa;
+      font-weight: bold;
+      color: #333;
+    }
+    table th {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 2px solid #ddd;
+      white-space: nowrap;
+    }
+    table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #ddd;
+    }
+    table input,
+    table select,
+    table textarea {
+      width: 100%;
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    table input[type="number"] {
+      width: 70px;
+    }
+    table textarea {
+      width: 150px;
+      min-height: 50px;
+      resize: vertical;
+    }
+    .qty-control,
+    .price-control {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+    .qty-control button,
+    .price-control button {
+      width: 30px;
+      height: 30px;
+      background: #28a745;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .qty-control button:hover,
+    .price-control button:hover {
+      background: #218838;
+    }
+    .qty-control input,
+    .price-control input {
+      width: 60px;
+      text-align: center;
+    }
+    .add-qty-btn {
+      background: #e91e63;
+      color: #fff;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .add-qty-btn:hover {
+      background: #c2185b;
+    }
+    .delete-row-btn {
+      background: #dc3545;
+      color: #fff;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .delete-row-btn:hover {
+      background: #c82333;
+    }
+    .button-group {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+    .btn-cancel {
+      padding: 10px 30px;
+      background: #fff;
+      color: #007BFF;
+      border: 2px solid #007BFF;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .btn-cancel:hover {
+      background: #f0f0f0;
+    }
+    .btn-save {
+      padding: 10px 30px;
+      background: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .btn-save:hover {
+      background: #0056b3;
+    }
+    .scroll-wrapper {
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+    .combo-section {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      display: none;
+    }
+    .combo-section.active {
+      display: block;
+    }
+    .combo-header {
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 14px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #007BFF;
+    }
+    .combo-content {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 20px;
+    }
+    .combo-left {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .combo-right {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .combo-row {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .combo-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .combo-group label {
+      font-weight: bold;
+      color: #333;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+    .combo-group input,
+    .combo-group select {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .size-range-section {
+      margin-top: 20px;
+      padding: 15px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .size-range-header {
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .size-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      font-size: 12px;
+      margin-bottom: 15px;
+    }
+    .size-table thead {
+      background: #e8e8e8;
+      font-weight: bold;
+    }
+    .size-table th {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    .size-table td {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+    }
+    .size-table input {
+      width: 80%;
+      padding: 4px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    .no-result {
+      text-align: center;
+      color: #999;
+      padding: 15px;
+      font-style: italic;
+    }
+    .size-total-row {
+      background: #f0f0f0;
+      font-weight: bold;
+    }
+    .add-size-btn {
+      background: #e91e63;
+      color: #fff;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .add-size-btn:hover {
+      background: #c2185b;
+    }
+    .add-buttons-section {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+    .add-pack-btn {
+      background: #fff;
+      color: #ffc107;
+      border: 2px solid #ffc107;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: bold;
+    }
+    .add-pack-btn:hover {
+      background: #fff3cd;
+    }
+    .add-style-btn {
+      background: #fff;
+      color: #007BFF;
+      border: 2px solid #007BFF;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: bold;
+    }
+    .add-style-btn:hover {
+      background: #e7f3ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <button class="hamburger-btn" onclick="toggleSidebar()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <h1>Order Entry - ERP System</h1>
+    </div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="container">
+    <!-- Left Sidebar with Hierarchical Menu -->
+    <div class="sidebar">
+      <!-- Costing Menu -->
+      <div class="menu-item expandable" onclick="toggleMenu(this)">
+        <span>Costing</span>
+        <span class="menu-toggle">›</span>
+      </div>
+
+      <!-- Order Planning Menu (Expanded by default) -->
+      <div class="menu-item expandable expanded" onclick="toggleMenu(this)">
+        <span>Order Planning</span>
+        <span class="menu-toggle">›</span>
+      </div>
+      <div class="submenu active" id="orderPlanningSubmenu">
+        <div class="submenu-item active" onclick="showSection('orderEntry', this)">Order Registration</div>
+        <div class="submenu-item" onclick="showSection('taaPlan', this)">T&A Plan</div>
+        <div class="submenu-item" onclick="showSection('fabricProgramme', this)">Fabric Program</div>
+        <div class="submenu-item" onclick="showSection('sampleFabric', this)">Sample Fabric Program</div>
+        <div class="submenu-item" onclick="showSection('accessoriesProgram', this)">Accessories Program</div>
+        <div class="submenu-item" onclick="showSection('budget', this)">Budget</div>
+        <div class="submenu-item" onclick="showSection('shortage', this)">Shortage / Excess</div>
+      </div>
+
+      <!-- Approvals Menu -->
+      <div class="menu-item expandable" onclick="toggleMenu(this)">
+        <span>Approvals</span>
+        <span class="menu-toggle">›</span>
+      </div>
+    </div>
+
+    <!-- Right Content Area -->
+    <div class="content-area">
+      <!-- Order Entry Section -->
+      <div id="orderEntry" class="content-section active">
+        <form id="orderForm">
+      <!-- Order Header Section -->
+      <div class="form-section">
+        <div class="form-row">
+          <div class="form-group">
+            <label>SO No: <span class="required">*</span></label>
+            <input type="text" id="soNo" placeholder="10" required>
+          </div>
+          <div class="form-group">
+            <label>Buyer: <span class="required">*</span></label>
+            <select id="buyer" required>
+              <option value="">Select</option>
+              <option value="buyer1">Buyer 1</option>
+              <option value="buyer2">Buyer 2</option>
+              <option value="buyer3">Buyer 3</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Type: <span class="required">*</span></label>
+            <select id="type" required>
+              <option value="">Select</option>
+              <option value="standard">Standard</option>
+              <option value="custom">Custom</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Order Date: <span class="required">*</span></label>
+            <input type="date" id="orderDate" required>
+          </div>
+          <div class="form-group">
+            <label>Delivery Date: <span class="required">*</span></label>
+            <input type="date" id="deliveryDate" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>T&A Planning: <span class="required">*</span></label>
+            <select id="taPlanning" required>
+              <option value="">Select</option>
+              <option value="group">Group</option>
+              <option value="individual">Individual</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Merchandiser: <span class="required">*</span></label>
+            <select id="merchandiser" required>
+              <option value="">Select</option>
+              <option value="merch1">Merchandiser 1</option>
+              <option value="merch2">Merchandiser 2</option>
+              <option value="merch3">Merchandiser 3</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Delivery Days:</label>
+            <input type="number" id="deliveryDays" placeholder="Delivery Days" min="0">
+          </div>
+          <div class="form-group">
+            <label>Currency: <span class="required">*</span></label>
+            <select id="currency" required>
+              <option value="">Select</option>
+              <option value="usd">USD</option>
+              <option value="eur">EUR</option>
+              <option value="gbp">GBP</option>
+              <option value="inr">INR</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Season:</label>
+            <input type="text" id="season" placeholder="Season">
+          </div>
+          <div class="form-group">
+            <label>Upload Files:</label>
+            <input type="file" id="uploadFiles" multiple>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Details Table Section -->
+      <div class="table-section">
+        <h3 style="margin-bottom: 15px; color: #333;">Order Sheet Details</h3>
+        <div class="scroll-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>STYLE NO</th>
+                <th>COSTING NO</th>
+                <th>PO NUMBER</th>
+                <th>UNIT</th>
+                <th>EXCESS %</th>
+                <th>QTY</th>
+                <th>PRICE</th>
+                <th>DELIVERY DATE</th>
+                <th>STYLE IMAGE</th>
+                <th>STYLE DESCRIPTION</th>
+                <th>ACTION</th>
+              </tr>
+            </thead>
+            <tbody id="styleTable">
+              <tr class="style-row">
+                <td><input type="text" class="styleNo" placeholder="Style"></td>
+                <td><select class="costingNo"><option value="">-- select --</option><option value="cost1">Cost 1</option><option value="cost2">Cost 2</option></select></td>
+                <td><input type="text" class="poNumber" placeholder="PO Num"></td>
+                <td><select class="unit"><option value="">Select</option><option value="pcs">PCS</option><option value="box">BOX</option><option value="dz">DZ</option></select></td>
+                <td><input type="number" class="excessPercent" placeholder="Exces" min="0" max="100"></td>
+                <td>
+                  <div class="qty-control">
+                    <button type="button" class="qty-minus">-</button>
+                    <input type="number" class="qty" value="0" min="0">
+                    <button type="button" class="qty-plus">+</button>
+                  </div>
+                </td>
+                <td>
+                  <div class="price-control">
+                    <button type="button" class="price-minus">-</button>
+                    <input type="number" class="price" value="0" min="0" step="0.01">
+                    <button type="button" class="price-plus">+</button>
+                  </div>
+                </td>
+                <td><input type="date" class="deliveryDateStyle"></td>
+                <td><input type="file" class="styleImage"></td>
+                <td><textarea class="styleDescription" placeholder="Style Description"></textarea></td>
+                <td>
+                  <button type="button" class="add-qty-btn" onclick="toggleComboSection(this)">Add Qty</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Combo Section - Shows when Add Qty is clicked -->
+        <div class="combo-section" id="comboSection">
+          <div class="combo-header">Combo 1</div>
+          
+          <div class="combo-content">
+            <!-- Left Side: Combo Details -->
+            <div class="combo-left">
+              <div class="combo-group">
+                <label>Combo Name:</label>
+                <select id="comboName">
+                  <option value="">Select</option>
+                  <option value="combo1">Combo 1</option>
+                  <option value="combo2">Combo 2</option>
+                </select>
+              </div>
+              <div class="combo-group">
+                <label>Combo Qty:</label>
+                <input type="text" id="comboQty" placeholder="Combo Qty">
+              </div>
+              <div class="combo-group">
+                <label>Pack Type:</label>
+                <select id="packType">
+                  <option value="">Select</option>
+                  <option value="box">Box</option>
+                  <option value="bag">Bag</option>
+                  <option value="carton">Carton</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Right Side: Size Range Section -->
+            <div class="combo-right">
+              <div class="size-range-section">
+                <div class="size-range-header">
+                  <span>Size Range:</span>
+                  <select id="sizeRange" style="width: 150px;">
+                    <option value="">Select</option>
+                    <option value="xs">XS</option>
+                    <option value="s">S</option>
+                    <option value="m">M</option>
+                    <option value="l">L</option>
+                    <option value="xl">XL</option>
+                  </select>
+                </div>
+
+                <table class="size-table">
+                  <thead>
+                    <tr>
+                      <th>Size</th>
+                      <th>Ratio</th>
+                      <th>Qty</th>
+                      <th>Excess %</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sizeTableBody">
+                    <tr>
+                      <td colspan="4" class="no-result">No result found!</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <table class="size-table">
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th></th>
+                      <th></th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="size-total-row">
+                      <td colspan="2"></td>
+                      <td>Total</td>
+                      <td><span id="totalQty">0</span></td>
+                      <td><span id="totalExcess">0</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <button type="button" class="add-size-btn" onclick="addSizeRow()">Add Size</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Pack and Combo Buttons -->
+          <div class="add-buttons-section">
+            <button type="button" class="add-pack-btn" onclick="addPackAndCombo()">+ Add Pack and Combo</button>
+            <button type="button" class="add-style-btn" onclick="addNewStyle()">+ Style</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="button-group">
+        <button type="reset" class="btn-cancel" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn-save">Save</button>
+      </div>
+        </form>
+      </div>
+
+      <!-- Fabric Programming Section -->
+      <div id="fabricProgramme" class="content-section">
+        <h2 style="color: #333; margin-bottom: 20px;">Fabric Programming</h2>
+        <form id="fabricForm">
+          <div class="form-section">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Program Name: <span class="required">*</span></label>
+                <input type="text" id="programName" placeholder="Enter Program Name" required>
+              </div>
+              <div class="form-group">
+                <label>Fabric Type: <span class="required">*</span></label>
+                <select id="fabricType" required>
+                  <option value="">Select</option>
+                  <option value="cotton">Cotton</option>
+                  <option value="polyester">Polyester</option>
+                  <option value="blend">Blend</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Quantity: <span class="required">*</span></label>
+                <input type="number" id="fabricQty" placeholder="Enter Quantity" min="0" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Supplier: <span class="required">*</span></label>
+                <input type="text" id="supplier" placeholder="Enter Supplier Name" required>
+              </div>
+              <div class="form-group">
+                <label>Expected Delivery: <span class="required">*</span></label>
+                <input type="date" id="fabricDelivery" required>
+              </div>
+              <div class="form-group">
+                <label>Status:</label>
+                <select id="fabricStatus">
+                  <option value="">Select</option>
+                  <option value="pending">Pending</option>
+                  <option value="ordered">Ordered</option>
+                  <option value="received">Received</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Notes:</label>
+                <textarea id="fabricNotes" placeholder="Enter Notes" style="resize: vertical; min-height: 60px;"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="button-group">
+            <button type="reset" class="btn-cancel" id="fabricCancelBtn">Cancel</button>
+            <button type="submit" class="btn-save">Save</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- T&A Plan Section -->
+      <div id="taaPlan" class="content-section">
+        <h2 style="color: #333; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+          <span style="background: #007BFF; color: white; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: bold;">☰</span>
+          T&A PLAN
+        </h2>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
+          <button style="padding: 8px 15px; background: #007BFF; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Pending 14</button>
+          <button style="padding: 8px 15px; background: #fff; color: #0066cc; border: 1px solid #0066cc; border-radius: 4px; cursor: pointer; font-weight: bold;">Completed 5</button>
+          <input type="text" placeholder="Search..." style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; flex: 1; max-width: 300px;">
+          <button style="padding: 8px 15px; background: #fff; color: #33a332; border: 2px solid #33a332; cursor: pointer; border-radius: 4px; font-weight: bold;">📊 Excel</button>
+          <button style="padding: 8px 15px; background: #fff; color: #d32f2f; border: 2px solid #d32f2f; cursor: pointer; border-radius: 4px; font-weight: bold;">📄 PDF</button>
+          <button style="padding: 8px 15px; background: #fff; color: #666; border: 2px solid #999; cursor: pointer; border-radius: 4px; font-weight: bold;">🖨️ Print</button>
+          <button style="padding: 8px 15px; background: #fff; color: #0066cc; border: 2px solid #0066cc; cursor: pointer; border-radius: 4px; font-weight: bold;">📋 Columns</button>
+          <a href="#" style="color: #0066cc; text-decoration: none; padding: 8px 15px; cursor: pointer;">Home</a>
+          <span style="color: #666; padding: 8px 0;">‣ Order Planning</span>
+          <span style="color: #999; padding: 8px 0;">‣ T&A Sheet</span>
+        </div>
+
+        <div style="overflow-x: auto; border: 1px solid #ddd; border-radius: 4px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead style="background: #f5f5f5; font-weight: bold; border-bottom: 2px solid #ddd;">
+              <tr>
+                <th style="padding: 12px; text-align: left; border-right: 1px solid #ddd;">BUYER</th>
+                <th style="padding: 12px; text-align: left; border-right: 1px solid #ddd;">SO NO</th>
+                <th style="padding: 12px; text-align: left; border-right: 1px solid #ddd;">STYLE IMAGE</th>
+                <th style="padding: 12px; text-align: left; border-right: 1px solid #ddd;">STYLE</th>
+                <th style="padding: 12px; text-align: left; border-right: 1px solid #ddd;">PO NUMBER</th>
+                <th style="padding: 12px; text-align: left; border-right: 1px solid #ddd;">PO QTY</th>
+                <th style="padding: 12px; text-align: left; border-right: 1px solid #ddd;">ORDER DATE</th>
+                <th style="padding: 12px; text-align: left; border-right: 1px solid #ddd;">CROSSED</th>
+                <th style="padding: 12px; text-align: left; border-right: 1px solid #ddd;">DELIVERY DATE</th>
+                <th style="padding: 12px; text-align: left; border-right: 1px solid #ddd;">REMAINING</th>
+                <th style="padding: 12px; text-align: left; border-right: 1px solid #ddd;">MERCHANDISER</th>
+                <th style="padding: 12px; text-align: left; border-right: 1px solid #ddd;">T&A TYPE</th>
+                <th style="padding: 12px; text-align: left; border-right: 1px solid #ddd;">ACTION</th>
+                <th style="padding: 12px; text-align: left;">ASSIGNEE APP PENDING</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid #ddd;">
+                <td style="padding: 12px; border-right: 1px solid #ddd;">LPP</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">9</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect fill='%23333' width='40' height='40'/%3E%3Ctext fill='%23fff' x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-weight='bold'%3E78%3C/text%3E%3C/svg%3E" style="width: 40px; height: 40px; border-radius: 4px;"></td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">707KB</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">11419884</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">1278</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">2026-01-29</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">16 day(s)</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">02 Apr, 2026</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">46 day(s)</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">SANTHOSH KUMAR</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">Style Wise</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;"><button style="background: #0066cc; color: #fff; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px;">+</button></td>
+                <td style="padding: 12px;"></td>
+              </tr>
+              <tr style="border-bottom: 1px solid #ddd;">
+                <td style="padding: 12px; border-right: 1px solid #ddd;">LPP</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">9</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect fill='%23333' width='40' height='40'/%3E%3Ctext fill='%23fff' x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-weight='bold'%3E78%3C/text%3E%3C/svg%3E" style="width: 40px; height: 40px; border-radius: 4px;"></td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">707KB</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">11419955</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">700</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">2026-01-29</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">16 day(s)</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">02 Apr, 2026</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">46 day(s)</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">SANTHOSH KUMAR</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">Style Wise</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;"><button style="background: #0066cc; color: #fff; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px;">+</button></td>
+                <td style="padding: 12px;"></td>
+              </tr>
+              <tr style="border-bottom: 1px solid #ddd;">
+                <td style="padding: 12px; border-right: 1px solid #ddd;">LPP</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">9</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect fill='%23333' width='40' height='40'/%3E%3Ctext fill='%23fff' x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-weight='bold'%3E78%3C/text%3E%3C/svg%3E" style="width: 40px; height: 40px; border-radius: 4px;"></td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">707KB</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">11420057 E-COMM</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">560</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">2026-01-29</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">16 day(s)</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">02 Apr, 2026</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">46 day(s)</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">SANTHOSH KUMAR</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">Style Wise</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;"><button style="background: #0066cc; color: #fff; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px;">+</button></td>
+                <td style="padding: 12px;"></td>
+              </tr>
+              <tr style="border-bottom: 1px solid #ddd;">
+                <td style="padding: 12px; border-right: 1px solid #ddd;">LPP</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">6</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect fill='%23FFA500' width='40' height='40'/%3E%3C/svg%3E" style="width: 40px; height: 40px; border-radius: 4px;"></td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">TEST SAMPLE</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">TEST</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">500</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">2026-01-27</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">18 day(s)</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">27 Mar, 2026</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">40 day(s)</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">VAISHNAVI</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;">Order Wise</td>
+                <td style="padding: 12px; border-right: 1px solid #ddd;"><button style="background: #0066cc; color: #fff; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px;">+</button></td>
+                <td style="padding: 12px;"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sample Fabric Program Section -->
+      <div id="sampleFabric" class="content-section">
+        <h2 style="color: #333; margin-bottom: 20px;">Sample Fabric Program</h2>
+        <form id="sampleFabricForm">
+          <div class="form-section">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Sample Name: <span class="required">*</span></label>
+                <input type="text" placeholder="Enter Sample Name" required>
+              </div>
+              <div class="form-group">
+                <label>Fabric Type: <span class="required">*</span></label>
+                <select required>
+                  <option value="">Select</option>
+                  <option value="cotton">Cotton</option>
+                  <option value="polyester">Polyester</option>
+                  <option value="blend">Blend</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Quantity: <span class="required">*</span></label>
+                <input type="number" placeholder="Enter Quantity" min="0" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Notes:</label>
+                <textarea placeholder="Enter Notes" style="resize: vertical; min-height: 60px;"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="button-group">
+            <button type="reset" class="btn-cancel">Cancel</button>
+            <button type="submit" class="btn-save">Save</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Accessories Program Section -->
+      <div id="accessoriesProgram" class="content-section">
+        <h2 style="color: #333; margin-bottom: 20px;">Accessories Program</h2>
+        <form id="accessoriesForm">
+          <div class="form-section">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Accessory Name: <span class="required">*</span></label>
+                <input type="text" placeholder="Enter Accessory Name" required>
+              </div>
+              <div class="form-group">
+                <label>Type: <span class="required">*</span></label>
+                <select required>
+                  <option value="">Select</option>
+                  <option value="button">Button</option>
+                  <option value="zipper">Zipper</option>
+                  <option value="elastic">Elastic</option>
+                  <option value="thread">Thread</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Quantity: <span class="required">*</span></label>
+                <input type="number" placeholder="Enter Quantity" min="0" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Supplier:</label>
+                <input type="text" placeholder="Enter Supplier Name">
+              </div>
+            </div>
+          </div>
+          <div class="button-group">
+            <button type="reset" class="btn-cancel">Cancel</button>
+            <button type="submit" class="btn-save">Save</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Budget Section -->
+      <div id="budget" class="content-section">
+        <h2 style="color: #333; margin-bottom: 20px;">Budget</h2>
+        <form id="budgetForm">
+          <div class="form-section">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Budget Name: <span class="required">*</span></label>
+                <input type="text" placeholder="Enter Budget Name" required>
+              </div>
+              <div class="form-group">
+                <label>Total Budget: <span class="required">*</span></label>
+                <input type="number" placeholder="Enter Amount" min="0" step="0.01" required>
+              </div>
+              <div class="form-group">
+                <label>Allocated: <span class="required">*</span></label>
+                <input type="number" placeholder="Enter Allocated Amount" min="0" step="0.01" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Notes:</label>
+                <textarea placeholder="Enter Notes" style="resize: vertical; min-height: 60px;"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="button-group">
+            <button type="reset" class="btn-cancel">Cancel</button>
+            <button type="submit" class="btn-save">Save</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Shortage / Excess Section -->
+      <div id="shortage" class="content-section">
+        <h2 style="color: #333; margin-bottom: 20px;">Shortage / Excess</h2>
+        <form id="shortageForm">
+          <div class="form-section">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Item Name: <span class="required">*</span></label>
+                <input type="text" placeholder="Enter Item Name" required>
+              </div>
+              <div class="form-group">
+                <label>Type: <span class="required">*</span></label>
+                <select required>
+                  <option value="">Select</option>
+                  <option value="shortage">Shortage</option>
+                  <option value="excess">Excess</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Quantity: <span class="required">*</span></label>
+                <input type="number" placeholder="Enter Quantity" min="0" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Date: <span class="required">*</span></label>
+                <input type="date" required>
+              </div>
+              <div class="form-group">
+                <label>Remarks:</label>
+                <textarea placeholder="Enter Remarks" style="resize: vertical; min-height: 60px;"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="button-group">
+            <button type="reset" class="btn-cancel">Cancel</button>
+            <button type="submit" class="btn-save">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let comboCount = 1;
+
+    // Toggle Sidebar for Mobile/Tablet
+    function toggleSidebar() {
+      const sidebar = document.querySelector(".sidebar");
+      const container = document.querySelector(".container");
+      sidebar.classList.toggle("hidden");
+      container.classList.toggle("sidebar-hidden");
+    }
+
+    // Toggle Menu Expansion
+    function toggleMenu(element) {
+      element.classList.toggle("expanded");
+      
+      // Find the next submenu if it exists
+      let nextElement = element.nextElementSibling;
+      if (nextElement && nextElement.classList.contains("submenu")) {
+        nextElement.classList.toggle("active");
+      }
+    }
+
+    // Show/Hide Sections
+    function showSection(sectionId, element) {
+      // Hide all sections
+      const sections = document.querySelectorAll(".content-section");
+      sections.forEach(section => section.classList.remove("active"));
+      
+      // Remove active class from all submenu items
+      const submenuItems = document.querySelectorAll(".submenu-item");
+      submenuItems.forEach(item => item.classList.remove("active"));
+      
+      // Show selected section
+      document.getElementById(sectionId).classList.add("active");
+      
+      // Add active class to clicked submenu item
+      if (element) {
+        element.classList.add("active");
+      }
+    }
+
+    // Toggle Combo Section
+    function toggleComboSection(button) {
+      const comboSection = document.getElementById("comboSection");
+      if (comboSection.classList.contains("active")) {
+        comboSection.classList.remove("active");
+        button.textContent = "Add Qty";
+      } else {
+        comboSection.classList.add("active");
+        button.textContent = "Hide Qty";
+      }
+    }
+
+    // Add Size Row
+    function addSizeRow() {
+      const sizeTableBody = document.getElementById("sizeTableBody");
+      
+      // Clear "No result found" message if visible
+      if (sizeTableBody.querySelector(".no-result")) {
+        sizeTableBody.innerHTML = "";
+      }
+
+      const newRow = document.createElement("tr");
+      newRow.innerHTML = `
+        <td><input type="text" placeholder="Size" class="sizeInput"></td>
+        <td><input type="number" placeholder="Ratio" class="ratioInput" min="0" step="0.01"></td>
+        <td><input type="number" placeholder="Qty" class="sizeQtyInput" min="0"></td>
+        <td><input type="number" placeholder="Excess %" class="excessInput" min="0" max="100"></td>
+      `;
+      sizeTableBody.appendChild(newRow);
+    }
+
+    // Add Pack and Combo Button
+    function addPackAndCombo() {
+      comboCount++;
+      const comboSection = document.getElementById("comboSection");
+      
+      // Create a new combo section
+      const newCombo = document.createElement("div");
+      newCombo.className = "combo-section active";
+      newCombo.innerHTML = `
+        <div class="combo-header">Combo ${comboCount}</div>
+        
+        <div class="combo-content">
+          <!-- Left Side: Combo Details -->
+          <div class="combo-left">
+            <div class="combo-group">
+              <label>Combo Name:</label>
+              <select>
+                <option value="">Select</option>
+                <option value="combo1">Combo 1</option>
+                <option value="combo2">Combo 2</option>
+              </select>
+            </div>
+            <div class="combo-group">
+              <label>Combo Qty:</label>
+              <input type="text" placeholder="Combo Qty">
+            </div>
+            <div class="combo-group">
+              <label>Pack Type:</label>
+              <select>
+                <option value="">Select</option>
+                <option value="box">Box</option>
+                <option value="bag">Bag</option>
+                <option value="carton">Carton</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Right Side: Size Range Section -->
+          <div class="combo-right">
+            <div class="size-range-section">
+              <div class="size-range-header">
+                <span>Size Range:</span>
+                <select style="width: 150px;">
+                  <option value="">Select</option>
+                  <option value="xs">XS</option>
+                  <option value="s">S</option>
+                  <option value="m">M</option>
+                  <option value="l">L</option>
+                  <option value="xl">XL</option>
+                </select>
+              </div>
+
+              <table class="size-table">
+                <thead>
+                  <tr>
+                    <th>Size</th>
+                    <th>Ratio</th>
+                    <th>Qty</th>
+                    <th>Excess %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="4" class="no-result">No result found!</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <table class="size-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="size-total-row">
+                    <td colspan="2"></td>
+                    <td>Total</td>
+                    <td><span>0</span></td>
+                    <td><span>0</span></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <button type="button" class="add-size-btn" onclick="addSizeRow()">Add Size</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="add-buttons-section">
+          <button type="button" class="add-pack-btn" onclick="addPackAndCombo()">+ Add Pack and Combo</button>
+          <button type="button" class="add-style-btn" onclick="addNewStyle()">+ Style</button>
+        </div>
+      `;
+      
+      comboSection.parentNode.insertBefore(newCombo, comboSection.nextSibling);
+    }
+
+    // Add New Style Row
+    function addNewStyle() {
+      const styleTable = document.getElementById("styleTable");
+      const newRow = document.createElement("tr");
+      newRow.className = "style-row";
+      newRow.innerHTML = `
+        <td><input type="text" class="styleNo" placeholder="Style"></td>
+        <td><select class="costingNo"><option value="">-- select --</option><option value="cost1">Cost 1</option><option value="cost2">Cost 2</option></select></td>
+        <td><input type="text" class="poNumber" placeholder="PO Num"></td>
+        <td><select class="unit"><option value="">Select</option><option value="pcs">PCS</option><option value="box">BOX</option><option value="dz">DZ</option></select></td>
+        <td><input type="number" class="excessPercent" placeholder="Exces" min="0" max="100"></td>
+        <td>
+          <div class="qty-control">
+            <button type="button" class="qty-minus">-</button>
+            <input type="number" class="qty" value="0" min="0">
+            <button type="button" class="qty-plus">+</button>
+          </div>
+        </td>
+        <td>
+          <div class="price-control">
+            <button type="button" class="price-minus">-</button>
+            <input type="number" class="price" value="0" min="0" step="0.01">
+            <button type="button" class="price-plus">+</button>
+          </div>
+        </td>
+        <td><input type="date" class="deliveryDateStyle"></td>
+        <td><input type="file" class="styleImage"></td>
+        <td><textarea class="styleDescription" placeholder="Style Description"></textarea></td>
+        <td>
+          <button type="button" class="add-qty-btn" onclick="toggleComboSection(this)">Add Qty</button>
+        </td>
+      `;
+      styleTable.appendChild(newRow);
+    }
+
+    // Quantity controls
+    document.addEventListener("click", function(e) {
+      if (e.target.classList.contains("qty-plus")) {
+        e.preventDefault();
+        const input = e.target.parentElement.querySelector(".qty");
+        input.value = parseInt(input.value || 0) + 1;
+      }
+      if (e.target.classList.contains("qty-minus")) {
+        e.preventDefault();
+        const input = e.target.parentElement.querySelector(".qty");
+        input.value = Math.max(0, parseInt(input.value || 0) - 1);
+      }
+      if (e.target.classList.contains("price-plus")) {
+        e.preventDefault();
+        const input = e.target.parentElement.querySelector(".price");
+        input.value = (parseFloat(input.value || 0) + 1).toFixed(2);
+      }
+      if (e.target.classList.contains("price-minus")) {
+        e.preventDefault();
+        const input = e.target.parentElement.querySelector(".price");
+        input.value = Math.max(0, parseFloat(input.value || 0) - 1).toFixed(2);
+      }
+    });
+
+    // Delete row
+    function deleteRow(button) {
+      const row = button.closest("tr");
+      if (document.querySelectorAll(".style-row").length > 1) {
+        row.remove();
+      } else {
+        alert("You must have at least one style row!");
+      }
+    }
+
+    // Cancel button
+    document.getElementById("cancelBtn").addEventListener("click", function(e) {
+      e.preventDefault();
+      if (confirm("Are you sure you want to cancel?")) {
+        window.location.href = "login.html";
+      }
+    });
+
+    // Fabric Programming Cancel Button
+    document.getElementById("fabricCancelBtn").addEventListener("click", function(e) {
+      e.preventDefault();
+      if (confirm("Are you sure you want to cancel?")) {
+        window.location.href = "login.html";
+      }
+    });
+
+    // Form submission
+    document.getElementById("orderForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      alert("Order saved successfully!");
+      // Reset form
+      this.reset();
+    });
+
+    // Fabric Programming Form Submission
+    document.getElementById("fabricForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      alert("Fabric Programming saved successfully!");
+      // Reset form
+      this.reset();
+    });
+
+    // T&A Plan Form Submission
+    const taaPlanForm = document.getElementById("taaPlanForm");
+    if (taaPlanForm) {
+      taaPlanForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        alert("T&A Plan saved successfully!");
+        this.reset();
+      });
+    }
+
+    // Sample Fabric Form Submission
+    const sampleFabricForm = document.getElementById("sampleFabricForm");
+    if (sampleFabricForm) {
+      sampleFabricForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        alert("Sample Fabric Program saved successfully!");
+        this.reset();
+      });
+    }
+
+    // Accessories Form Submission
+    const accessoriesForm = document.getElementById("accessoriesForm");
+    if (accessoriesForm) {
+      accessoriesForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        alert("Accessories Program saved successfully!");
+        this.reset();
+      });
+    }
+
+    // Budget Form Submission
+    const budgetForm = document.getElementById("budgetForm");
+    if (budgetForm) {
+      budgetForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        alert("Budget saved successfully!");
+        this.reset();
+      });
+    }
+
+    // Shortage Form Submission
+    const shortageForm = document.getElementById("shortageForm");
+    if (shortageForm) {
+      shortageForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        alert("Shortage / Excess saved successfully!");
+        this.reset();
+      });
+    }
+
+    // Logout function
+    function logout() {
+      if (confirm("Are you sure you want to logout?")) {
+        window.location.href = "login.html";
+      }
+    }
+  </script>
+</body>
+</html>
